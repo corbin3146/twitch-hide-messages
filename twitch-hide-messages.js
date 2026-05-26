@@ -115,7 +115,7 @@ const toggleButton = document.createElement('button');
                         const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
                         const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]');
                         // Check if the message starts with an exclamation point
-                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim())//returns -1 or the fade time in ms
+                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan.innerText.trim())//returns -1 or the fade time in ms
                         
                         if (messageTextSpan && HasRestrictedContents>=0) {
                             // console.log('%c➖ ' + node.innerText.trim(), 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
@@ -149,43 +149,128 @@ const toggleButton = document.createElement('button');
 }
 
 
-function CheckForFilteredContents(text){
+function CheckForFilteredContents(text, username){
     //console.log("Message [",text,"] is being searched")
     // chrome.storage.sync.get(['userFilter'], function(result) {
     //     const filter = result.userFilter ?? ""; 
     //     console.log("Current filter is: ", filter);
     // });
 
-    const Regex = '^!.*'
-    if (text.startsWith('!fish')){
-        return 2 * 1000
-    }else if (text.startsWith('!sr')){
-        return 2 * 1000
-    } else if (text.includes('Gold! You now have')){
-        return 60 * 1000
-    } else if (text.includes('has won the Battle Royale')){
-        return 60 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 10 * 1000
-    } else if (text.includes('Taking song requests!')){
-        return 5 * 1000
-    } else if (text.includes('use code Axlebro at checkout')){
-        return 60 * 1000
-    } else if (text.includes('the jump catch game!')){
-        return 5 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 60 * 1000
-    } else if (text.includes('Taking an ad break!')){
-        return 180 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 60 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 60 * 1000
-    } else if (text.includes('from the slots!')){
-        return 60 * 1000
-    } else if (text.includes('added (playing in')){
-        return 20 * 1000
-     }else if (text.search(Regex) != -1){//search returns -1 or the index of what you are searching for
-         return 5 * 1000
-    }else return -1
+    const filterConfig = {
+        "FishingRequest": {    
+                        "FilterType":"startsWith",
+                        "FilteredText":{[1]:"!fish"},
+                        "FadeOutDurrationSeconds":5
+        },
+        "FishingCatchLegendary": {//legendary is more specific than "FishingCatchLow" therefore we place it before the other filter
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"gold 🎣",[2]:"Legendary"},
+                        "FadeOutDurrationSeconds":-1
+        },
+        "FishingCatchEpic": {
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"gold 🎣",[2]:"Epic"},
+                        "FadeOutDurrationSeconds":30
+        },
+        "FishingCatchLow": {
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"gold 🎣"},
+                        "FadeOutDurrationSeconds":10
+        },
+        "StreamAvatars":{
+                        "FilterType":"includesAny",
+                        "FilteredText":{
+                            [1]:"The Battle Royale is starting!",
+                            [2]:"has won the Battle Royale",
+                            [3]:"the jump catch game!",
+                            [4]:"from the slots!"
+                        },
+                        "FadeOutDurrationSeconds":20
+        },
+        "TakingSongRequests": {
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"Taking song requests!"},
+                        "FadeOutDurrationSeconds":5
+        },
+        "ShillLimiter":{
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"use code",[2]:"at checkout"},
+                        "FadeOutDurrationSeconds":30
+        },
+        "AddBreak":{//visible durring the 3 minute add break
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"ad break"},
+                        "FadeOutDurrationSeconds":180
+        },
+        "SongRequestsSongAdded":{
+                        "FilterType":"includesAll",
+                        "FilteredText":{[1]:"added (playing in"},
+                        "FadeOutDurrationSeconds":15
+        },
+
+        
+        //filters are evaluated from top to bottom. here are some generic filters to catch the rest
+        "AllCommands":{
+                        "FilterType":"regex",
+                        "expression":"^!.*",//starts with !
+                        "FadeOutDurrationSeconds":30
+        },
+        "BotCatchAll":{
+                        "FilterType":"regex",
+                        "expression":".",//match anything
+                        "username":"bot",//this is a 'includes' filter because twitch does strange things with usernames some of the time
+                        //for example "homo" will match any username including "homo"
+                        "FadeOutDurrationSeconds":60
+        } 
+    }
+
+    
+    for (const Filter in filterConfig){
+        const f = filterConfig[Filter]
+        //console.log(f["FilterType"], f["FilteredText"][1])
+        //check if there is a username attached to the filter. if so, enforce that
+        if ("username" in f && !username.toLowerCase().includes(f["username"].toLowerCase())){//if the filter requires a username
+            continue//next filter
+        }
+
+        if (f["FilterType"] == "startsWith" && text.toLowerCase().startsWith(f["FilteredText"][1].toLowerCase())){
+            //console.log(f["FilteredText"][1],"...",text.startsWith(f["FilteredText"][1]))
+            console.log(Filter,username,text,)
+            return f["FadeOutDurrationSeconds"] *1000
+        }
+        if (f["FilterType"] == "includesAll" ){
+            let HasFilteredText = true
+            for(const includedText in f["FilteredText"]){
+                if (!text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
+                    HasFilteredText = false//one of the filters failed
+                    break //end the loop
+                }
+            }
+            if (HasFilteredText){
+                console.log(Filter,username,text)
+                return f["FadeOutDurrationSeconds"] * 1000
+            }
+            
+        }
+        if (f["FilterType"] == "includesAny" ){
+            let HasFilteredText = false
+            for(const includedText in f["FilteredText"]){
+                if (text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
+                    HasFilteredText = true//one of the filters passed
+                    break //end the loop
+                }
+            }
+            if (HasFilteredText){
+                console.log(Filter,username,text)
+                return f["FadeOutDurrationSeconds"] * 1000
+            }
+            
+        }
+        if (f["FilterType"] == "regex" && text.toLowerCase().search(f["expression"]) != -1){
+            console.log(Filter,username,text)
+            return f["FadeOutDurrationSeconds"] * 1000
+        }
+
+    }
+    return -1
 }
