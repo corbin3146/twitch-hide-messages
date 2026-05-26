@@ -16,7 +16,8 @@
                 "*://www.twitch.tv/*"
             ],
             "js": [
-                "twitch-hide-messages.js"
+                "twitch-hide-messages.js",
+                "filterConfig.js"
             ],
             "run_at": "document_idle"
         }
