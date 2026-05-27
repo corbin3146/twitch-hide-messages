@@ -1,4 +1,6 @@
-export const filterConfig = { //export and import are used because comments are not allowed in an actual JSON file
+chrome.storage.local.set(
+    {"filterConfig" : 
+    { //export and import are used because comments are not allowed in an actual JSON file
         "FishingRequest": {//this part of the configuration of the filter is mostly decorative. It will appear in the console of your browser when applied. It does need to be unique    
                         "FilterType":"startsWith",
                         "FilteredText":{[1]:"!fish"},
@@ -46,7 +48,7 @@ export const filterConfig = { //export and import are used because comments are 
         },
         "SongRequestsSongAdded":{
                         "FilterType":"includesAll",
-                        "FilteredText":{[1]:"added (playing in"},
+                        "FilteredText":{[1]:"added", [2]:"playing in"},
                         "FadeOutDurrationSeconds":15
         },
 
@@ -65,3 +67,4 @@ export const filterConfig = { //export and import are used because comments are 
                         "FadeOutDurrationSeconds":60
         } 
     }
+})

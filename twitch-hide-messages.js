@@ -31,19 +31,23 @@ function waitForElement(selector) {
         });
     });
 }
+let filterConfig = {}
 waitForElement('[data-a-target="chat-settings"]').then((btn) => {
-    main();
+    chrome.storage.local.get(['filterConfig'],(filterConfig_storage) =>{
+        filterConfig = filterConfig_storage['filterConfig']
+        main();
+    })
 });
 
-function main(){
+async function main(){
     // Write a message to the console
     console.log('%c😵 Twitch Hide Messages: Extension loaded.', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif;');
 
     // Find the chat settings button
     // not const because it changes when you switch channels
     let chatSettingsButton = document.querySelector('[data-a-target="chat-settings"]');
-    console.log(chatSettingsButton)
-    console.log(chatSettingsButton.parentElement)
+    //console.log(chatSettingsButton)
+    //console.log(chatSettingsButton.parentElement)
     // Create a new toggle button
 const toggleButton = document.createElement('button');
     toggleButton.innerHTML = '❗';
@@ -90,6 +94,7 @@ const toggleButton = document.createElement('button');
             // })
             observer.observe(document.body, { childList: true, subtree: true });
         }
+        console.log('%c😵 Twitch Hide Messages: Listening.', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif;');
     });
 
     toggleButton.addEventListener('mouseover', () => {
@@ -110,12 +115,14 @@ const toggleButton = document.createElement('button');
                 mutation.addedNodes.forEach(node => {
                     // Check if the added node is a chat message with the "chat-line__message" class
                     // console.log("activity detected node class list:", node.classList)
+                    //console.log(node)
                     if (node instanceof HTMLDivElement && node.querySelector('[data-a-target="chat-message-text"]') !== null) {
                         //console.log("activity detected node:", node)
                         const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
-                        const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]');
+                        //const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]');
+                        const authorTextSpan = "" 
                         // Check if the message starts with an exclamation point
-                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan.innerText.trim())//returns -1 or the fade time in ms
+                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), "")//returns -1 or the fade time in ms
                         
                         if (messageTextSpan && HasRestrictedContents>=0) {
                             // console.log('%c➖ ' + node.innerText.trim(), 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
@@ -148,60 +155,59 @@ const toggleButton = document.createElement('button');
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-import { filterConfig } from "./filterConfig.js";
 function CheckForFilteredContents(text, username){
-    //console.log("Message [",text,"] is being searched")
-    // chrome.storage.sync.get(['userFilter'], function(result) {
-    //     const filter = result.userFilter ?? ""; 
-    //     console.log("Current filter is: ", filter);
-    // });
+    // const filterConfig_storage = await chrome.storage.local.get(['filterConfig'])
+    //console.log("checking:",text)
     
     for (const Filter in filterConfig){
-        const f = filterConfig[Filter]
-        //console.log(f["FilterType"], f["FilteredText"][1])
-        //check if there is a username attached to the filter. if so, enforce that
-        if ("username" in f && !username.toLowerCase().includes(f["username"].toLowerCase())){//if the filter requires a username
-            continue//next filter
-        }
+    const f = filterConfig[Filter]
+    //console.log(f)
+    //check if there is a username attached to the filter. if so, enforce that
+    if ("username" in f && !username.toLowerCase().includes(f["username"].toLowerCase())){//if the filter requires a username
+        continue//next filter
+    }
 
-        if (f["FilterType"] == "startsWith" && text.toLowerCase().startsWith(f["FilteredText"][1].toLowerCase())){
-            //console.log(f["FilteredText"][1],"...",text.startsWith(f["FilteredText"][1]))
-            console.log(Filter,username,text,)
-            return f["FadeOutDurrationSeconds"] *1000
+    if (f["FilterType"] == "startsWith" && text.toLowerCase().startsWith(f["FilteredText"][1].toLowerCase())){
+        //console.log(f["FilteredText"][1],"...",text.startsWith(f["FilteredText"][1]))
+        console.log(Filter,username,text,)
+        return f["FadeOutDurrationSeconds"] *1000
+    }
+    if (f["FilterType"] == "includesAll" ){
+        let HasFilteredText = true
+        for(const includedText in f["FilteredText"]){
+            if (!text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
+                //console.log(text,"does not contain ",f["FilteredText"][includedText])
+                HasFilteredText = false//one of the filters failed
+                break //end the loop
+            }
         }
-        if (f["FilterType"] == "includesAll" ){
-            let HasFilteredText = true
-            for(const includedText in f["FilteredText"]){
-                if (!text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
-                    HasFilteredText = false//one of the filters failed
-                    break //end the loop
-                }
-            }
-            if (HasFilteredText){
-                console.log(Filter,username,text)
-                return f["FadeOutDurrationSeconds"] * 1000
-            }
-            
-        }
-        if (f["FilterType"] == "includesAny" ){
-            let HasFilteredText = false
-            for(const includedText in f["FilteredText"]){
-                if (text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
-                    HasFilteredText = true//one of the filters passed
-                    break //end the loop
-                }
-            }
-            if (HasFilteredText){
-                console.log(Filter,username,text)
-                return f["FadeOutDurrationSeconds"] * 1000
-            }
-            
-        }
-        if (f["FilterType"] == "regex" && text.toLowerCase().search(f["expression"]) != -1){
+        if (HasFilteredText){
             console.log(Filter,username,text)
             return f["FadeOutDurrationSeconds"] * 1000
         }
+        
+    }
+    if (f["FilterType"] == "includesAny" ){
+        let HasFilteredText = false
+        for(const includedText in f["FilteredText"]){
+            if (text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
+                HasFilteredText = true//one of the filters passed
+                break //end the loop
+            }
+        }
+        if (HasFilteredText){
+            console.log(Filter,username,text)
+            return f["FadeOutDurrationSeconds"] * 1000
+        }
+        
+    }
+    if (f["FilterType"] == "regex" && text.toLowerCase().search(f["expression"]) != -1){
+        console.log(Filter,username,text)
+        return f["FadeOutDurrationSeconds"] * 1000
+    }
 
     }
+    //no filteres matched
+    console.log("Clean: ",username,text)
     return -1
 }
