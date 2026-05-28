@@ -31,19 +31,23 @@ function waitForElement(selector) {
         });
     });
 }
+let filterConfig = {}
 waitForElement('[data-a-target="chat-settings"]').then((btn) => {
-    main();
+    chrome.storage.local.get(['filterConfig'],(filterConfig_storage) =>{
+        filterConfig = filterConfig_storage['filterConfig']
+        main();
+    })
 });
 
-function main(){
+async function main(){
     // Write a message to the console
     console.log('%c😵 Twitch Hide Messages: Extension loaded.', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif;');
 
     // Find the chat settings button
     // not const because it changes when you switch channels
     let chatSettingsButton = document.querySelector('[data-a-target="chat-settings"]');
-    console.log(chatSettingsButton)
-    console.log(chatSettingsButton.parentElement)
+    //console.log(chatSettingsButton)
+    //console.log(chatSettingsButton.parentElement)
     // Create a new toggle button
 const toggleButton = document.createElement('button');
     toggleButton.innerHTML = '❗';
@@ -90,6 +94,7 @@ const toggleButton = document.createElement('button');
             // })
             observer.observe(document.body, { childList: true, subtree: true });
         }
+        console.log('%c😵 Twitch Hide Messages: Listening.', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif;');
     });
 
     toggleButton.addEventListener('mouseover', () => {
@@ -110,12 +115,14 @@ const toggleButton = document.createElement('button');
                 mutation.addedNodes.forEach(node => {
                     // Check if the added node is a chat message with the "chat-line__message" class
                     // console.log("activity detected node class list:", node.classList)
+                    //console.log(node)
                     if (node instanceof HTMLDivElement && node.querySelector('[data-a-target="chat-message-text"]') !== null) {
                         //console.log("activity detected node:", node)
                         const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
-                        const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]');
+                        //const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]');
+                        const authorTextSpan = "" 
                         // Check if the message starts with an exclamation point
-                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim())//returns -1 or the fade time in ms
+                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), "")//returns -1 or the fade time in ms
                         
                         if (messageTextSpan && HasRestrictedContents>=0) {
                             // console.log('%c➖ ' + node.innerText.trim(), 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
@@ -148,44 +155,65 @@ const toggleButton = document.createElement('button');
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
+function CheckForFilteredContents(text, username){
+    // const filterConfig_storage = await chrome.storage.local.get(['filterConfig'])
+    //console.log("checking:",text)
+    
+    //console.log(filterConfig)
+    for (const Filter of filterConfig){
+    let f = filterConfig[Filter]
+    //const f = Filter
+    const FilterName = Object.keys(Filter)[0]
+    f = Object.values(Filter)[0]
 
-function CheckForFilteredContents(text){
-    //console.log("Message [",text,"] is being searched")
-    // chrome.storage.sync.get(['userFilter'], function(result) {
-    //     const filter = result.userFilter ?? ""; 
-    //     console.log("Current filter is: ", filter);
-    // });
 
-    const Regex = '^!.*'
-    if (text.startsWith('!fish')){
-        return 2 * 1000
-    }else if (text.startsWith('!sr')){
-        return 2 * 1000
-    } else if (text.includes('Gold! You now have')){
-        return 60 * 1000
-    } else if (text.includes('has won the Battle Royale')){
-        return 60 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 10 * 1000
-    } else if (text.includes('Taking song requests!')){
-        return 5 * 1000
-    } else if (text.includes('use code Axlebro at checkout')){
-        return 60 * 1000
-    } else if (text.includes('the jump catch game!')){
-        return 5 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 60 * 1000
-    } else if (text.includes('Taking an ad break!')){
-        return 180 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 60 * 1000
-    } else if (text.includes('The Battle Royale is starting!')){
-        return 60 * 1000
-    } else if (text.includes('from the slots!')){
-        return 60 * 1000
-    } else if (text.includes('added (playing in')){
-        return 20 * 1000
-     }else if (text.search(Regex) != -1){//search returns -1 or the index of what you are searching for
-         return 5 * 1000
-    }else return -1
+    //console.log(FilterName, f,text)
+    //check if there is a username attached to the filter. if so, enforce that
+    if ("username" in f && !username.toLowerCase().includes(f["username"].toLowerCase())){//if the filter requires a username
+        continue//next filter
+    }
+
+    if (f["FilterType"] == "startsWith" && text.toLowerCase().startsWith(f["FilteredText"][1].toLowerCase())){
+        //console.log(f["FilteredText"][1],"...",text.startsWith(f["FilteredText"][1]))
+        console.log(FilterName,username,text,)
+        return f["FadeOutDurrationSeconds"] *1000
+    }
+    if (f["FilterType"] == "includesAll" ){
+        let HasFilteredText = true
+        for(const includedText in f["FilteredText"]){
+            if (!text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
+                //console.log(text,"does not contain ",f["FilteredText"][includedText])
+                HasFilteredText = false//one of the filters failed
+                break //end the loop
+            }
+        }
+        if (HasFilteredText){
+            console.log(FilterName,username,text)
+            return f["FadeOutDurrationSeconds"] * 1000
+        }
+        
+    }
+    if (f["FilterType"] == "includesAny" ){
+        let HasFilteredText = false
+        for(const includedText in f["FilteredText"]){
+            if (text.toLowerCase().includes(f["FilteredText"][includedText].toLowerCase())){
+                HasFilteredText = true//one of the filters passed
+                break //end the loop
+            }
+        }
+        if (HasFilteredText){
+            console.log(FilterName,username,text)
+            return f["FadeOutDurrationSeconds"] * 1000
+        }
+        
+    }
+    if (f["FilterType"] == "regex" && text.toLowerCase().search(f["expression"]) != -1){
+        console.log(FilterName,username,text)
+        return f["FadeOutDurrationSeconds"] * 1000
+    }
+
+    }
+    //no filteres matched
+    console.log("Clean: ",username,text)
+    return -1
 }
