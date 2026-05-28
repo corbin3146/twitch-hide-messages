@@ -159,9 +159,15 @@ function CheckForFilteredContents(text, username){
     // const filterConfig_storage = await chrome.storage.local.get(['filterConfig'])
     //console.log("checking:",text)
     
-    for (const Filter in filterConfig){
-    const f = filterConfig[Filter]
-    //console.log(f)
+    //console.log(filterConfig)
+    for (const Filter of filterConfig){
+    let f = filterConfig[Filter]
+    //const f = Filter
+    const FilterName = Object.keys(Filter)[0]
+    f = Object.values(Filter)[0]
+
+
+    //console.log(FilterName, f,text)
     //check if there is a username attached to the filter. if so, enforce that
     if ("username" in f && !username.toLowerCase().includes(f["username"].toLowerCase())){//if the filter requires a username
         continue//next filter
@@ -169,7 +175,7 @@ function CheckForFilteredContents(text, username){
 
     if (f["FilterType"] == "startsWith" && text.toLowerCase().startsWith(f["FilteredText"][1].toLowerCase())){
         //console.log(f["FilteredText"][1],"...",text.startsWith(f["FilteredText"][1]))
-        console.log(Filter,username,text,)
+        console.log(FilterName,username,text,)
         return f["FadeOutDurrationSeconds"] *1000
     }
     if (f["FilterType"] == "includesAll" ){
@@ -182,7 +188,7 @@ function CheckForFilteredContents(text, username){
             }
         }
         if (HasFilteredText){
-            console.log(Filter,username,text)
+            console.log(FilterName,username,text)
             return f["FadeOutDurrationSeconds"] * 1000
         }
         
@@ -196,13 +202,13 @@ function CheckForFilteredContents(text, username){
             }
         }
         if (HasFilteredText){
-            console.log(Filter,username,text)
+            console.log(FilterName,username,text)
             return f["FadeOutDurrationSeconds"] * 1000
         }
         
     }
     if (f["FilterType"] == "regex" && text.toLowerCase().search(f["expression"]) != -1){
-        console.log(Filter,username,text)
+        console.log(FilterName,username,text)
         return f["FadeOutDurrationSeconds"] * 1000
     }
 
