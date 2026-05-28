@@ -5,14 +5,14 @@ Browser extension that hides messages using configurable filters on Twitch.
 <!--![Demo](https://github.com/rdavydov/twitch-hide-messages/blob/main/twitch-hide-messages-demo.gif?raw=true)-->
 
 ## Features
-1. Fade out Twitch chat spam. Other extensions prevent you from seeing the spam which has it's own benefits ofcourse, but this can leave chat feel slower and emptier than it really is.
+1. Fade out Twitch chat spam. Other extensions prevent you from seeing the spam which has it's own benefits of course, but this can leave chat feel slower and emptier than it really is.
 2. Configurable JSON allows the user to tune how long messages stay on screen before popping out of existance. For now, you will need to open up the files to find it.
 3. You can search for and remove messages which:
-    A. Contain all provided words/phrases
-    b. Contain any of the provided words
-    c. Match a provided regex expression
-    d. Starting with the provided word/phrase 
-    e. Limit filter to only apply to a whitelist of message authors. eg: this filter only applies to gato
+    - Contain all provided words/phrases
+    - Contain any of the provided words
+    - Match a provided regex expression
+    - Starting with the provided word/phrase 
+    - Limit filter to only apply to a whitelist of message authors. eg: this filter only applies to gato
 4. Fade out can be disabled at a per filter basis if there are some messages you trully never need to see, Just set the fade out durration to 0 and the animation will finish instantly
 5. For safety reasons and debugging reasons, this extension will not work in mod view
 6. Filter can be disabled for incoming messages. Click the exclamation point in the bottom right by the settings cog to toggle.
