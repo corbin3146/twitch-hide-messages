@@ -31,8 +31,9 @@ function waitForElement(selector) {
         });
     });
 }
+
 let filterConfig = {}
-waitForElement('[data-a-target="chat-settings"]').then((btn) => {
+waitForElement('[data-a-target="chat-settings"],[aria-label="Turn On Shield Mode"]').then((btn) => {
     chrome.storage.local.get(['filterConfig'],(filterConfig_storage) =>{
         filterConfig = filterConfig_storage['filterConfig']
         main();
@@ -45,7 +46,7 @@ async function main(){
 
     // Find the chat settings button
     // not const because it changes when you switch channels
-    let chatSettingsButton = document.querySelector('[data-a-target="chat-settings"]');
+    let chatSettingsButton = document.querySelector('[data-a-target="chat-settings"],[aria-label="Turn On Shield Mode"]');
     //console.log(chatSettingsButton)
     //console.log(chatSettingsButton.parentElement)
     // Create a new toggle button
@@ -119,10 +120,10 @@ const toggleButton = document.createElement('button');
                     if (node instanceof HTMLDivElement && node.querySelector('[data-a-target="chat-message-text"]') !== null) {
                         //console.log("activity detected node:", node)
                         const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
-                        //const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]');
-                        const authorTextSpan = "" 
+                        const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]').textContent ?? "";
+                        //const authorTextSpan = "" 
                         // Check if the message starts with an exclamation point
-                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), "")//returns -1 or the fade time in ms
+                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan)//returns -1 or the fade time in ms
                         
                         if (messageTextSpan && HasRestrictedContents>=0) {
                             // console.log('%c➖ ' + node.innerText.trim(), 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
@@ -169,6 +170,7 @@ function CheckForFilteredContents(text, username){
 
     //console.log(FilterName, f,text)
     //check if there is a username attached to the filter. if so, enforce that
+    //console.log(FilterName, username, f["username"] )
     if ("username" in f && !username.toLowerCase().includes(f["username"].toLowerCase())){//if the filter requires a username
         continue//next filter
     }
