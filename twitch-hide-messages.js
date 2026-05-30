@@ -120,7 +120,7 @@ const toggleButton = document.createElement('button');
                     if (node instanceof HTMLDivElement && node.querySelector('[data-a-target="chat-message-text"]') !== null) {
                         //console.log("activity detected node:", node)
                         const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
-                        const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]').textContent ?? "";
+                        const authorTextSpan = (node.querySelector('[data-a-target="chat-message-username"]')??"").textContent ?? "";
                         //const authorTextSpan = "" 
                         // Check if the message starts with an exclamation point
                         const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan)//returns -1 or the fade time in ms

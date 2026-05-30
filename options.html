@@ -1,6 +1,5 @@
-<!-- work in progress
 <!DOCTYPE html>
-<html>
+<html style="color-scheme: light dark;">
 <head>
   <title>Extension Settings</title>
   <style>
@@ -12,12 +11,21 @@
 </head>
 <body>
   <h2>Extension Settings</h2>
-  <label for="filterString">Filter String:</label><br><br>
-  <input type="text" id="filterString" placeholder="Enter your filter...">
+  <label for="DisabledOnModView">Disabled On Mod View  </label>
+  <input type="checkbox" id="DisabledOnModView" value = 'Disabled'>
+
+  <br><br><label for="DisabledOnRegularView">Disbled On Normal View</label>
+  <input type="checkbox" id="DisabledOnRegularView" value = 'Disabled'>
+  
+  <br><br><label for="filterJSON_TextArea">Filter JSON:</label><br><br>
+  <textarea 
+      id="filterJSON_TextArea" 
+      placeholder="Refresh probably reloads your filter"
+      rows="50" cols="120" style="overflow-y: scroll;"></textarea>
+  <br>
   <button id="save">Save</button>
   <div id="status"></div>
 
   <script src="options.js"></script>
 </body>
 </html>
--->
