@@ -41,3 +41,4 @@ Browser extension that hides messages using configurable filters on Twitch.
 - Please open an issue on github for requests and bugs
 - if something is broken, please include what you did in what order, what browser you have, and any details I would need to recreate the issue.
 - Features do not strictly need to be related to spam management. If somebody wanted a popup durring a raid that has their intro listed... i can probably do that.
+- If you would like a feature added, please include concrete details such as what things should look like and how you wouldinteract with it.
