@@ -33,10 +33,26 @@ function waitForElement(selector) {
 }
 
 let filterConfig = {}
+let settings = {}
 waitForElement('[data-a-target="chat-settings"],[aria-label="Turn On Shield Mode"]').then((btn) => {
-    chrome.storage.local.get(['filterConfig'],(filterConfig_storage) =>{
+    chrome.storage.local.get(['filterConfig','settings'],(filterConfig_storage) =>{
         filterConfig = filterConfig_storage['filterConfig']
-        main();
+        settings = filterConfig_storage['settings']
+
+        const currentURL = window.location.href;
+        console.log(currentURL)
+        if (currentURL.includes('twitch.tv/moderator/') && settings['DisabledOnModView']){
+            console.log("DisabledOnModView",settings['DisabledOnModView'])
+            return
+        }else if (currentURL.includes('twitch.tv/') && !currentURL.includes('twitch.tv/moderator/') && settings['DisabledOnRegularView']){
+            console.log("DisabledOnRegularView",settings['DisabledOnRegularView'])
+            return
+        }else{
+            main();
+        }
+        
+        
+
     })
 });
 
@@ -120,7 +136,7 @@ const toggleButton = document.createElement('button');
                     if (node instanceof HTMLDivElement && node.querySelector('[data-a-target="chat-message-text"]') !== null) {
                         //console.log("activity detected node:", node)
                         const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
-                        const authorTextSpan = node.querySelector('[data-a-target="chat-message-username"]').textContent ?? "";
+                        const authorTextSpan = (node.querySelector('[data-a-target="chat-message-username"]')??"").textContent ?? "";
                         //const authorTextSpan = "" 
                         // Check if the message starts with an exclamation point
                         const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan)//returns -1 or the fade time in ms
