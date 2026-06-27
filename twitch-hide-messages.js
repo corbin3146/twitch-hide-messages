@@ -37,14 +37,14 @@ let settings = {}
 waitForElement('[data-a-target="chat-settings"],[aria-label="Turn On Shield Mode"]').then((btn) => {
     chrome.storage.local.get(['filterConfig','settings'],(filterConfig_storage) =>{
         filterConfig = filterConfig_storage['filterConfig']
-        settings = filterConfig_storage['settings']
+        settings = filterConfig_storage['settings'] ?? {}
 
         const currentURL = window.location.href;
         console.log(currentURL)
-        if (currentURL.includes('twitch.tv/moderator/') && settings['DisabledOnModView']){
+        if (currentURL.includes('twitch.tv/moderator/') && 'DisabledOnModView' in settings && settings['DisabledOnModView']){
             console.log("DisabledOnModView",settings['DisabledOnModView'])
             return
-        }else if (currentURL.includes('twitch.tv/') && !currentURL.includes('twitch.tv/moderator/') && settings['DisabledOnRegularView']){
+        }else if (currentURL.includes('twitch.tv/') && !currentURL.includes('twitch.tv/moderator/') && 'DisabledOnRegularView' in settings && settings['DisabledOnRegularView']){
             console.log("DisabledOnRegularView",settings['DisabledOnRegularView'])
             return
         }else{
@@ -133,28 +133,57 @@ const toggleButton = document.createElement('button');
                     // Check if the added node is a chat message with the "chat-line__message" class
                     // console.log("activity detected node class list:", node.classList)
                     //console.log(node)
-                    if (node instanceof HTMLDivElement && node.querySelector('[data-a-target="chat-message-text"]') !== null) {
-                        //console.log("activity detected node:", node)
-                        const messageTextSpan = node.querySelector('[data-a-target="chat-message-text"]');
-                        const authorTextSpan = (node.querySelector('[data-a-target="chat-message-username"]')??"").textContent ?? "";
-                        //const authorTextSpan = "" 
-                        // Check if the message starts with an exclamation point
-                        const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan)//returns -1 or the fade time in ms
-                        
-                        if (messageTextSpan && HasRestrictedContents>=0) {
-                            // console.log('%c➖ ' + node.innerText.trim(), 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
-                            // Hide the message container
-                            console.log("HasRestrictedContents:",HasRestrictedContents)
-                            node.animate([
-                                { opacity: 1 }, // Start state
-                                { opacity: 0.25, display : 'none'}  // End state partialy visible then pop
-                                ], {
-                                duration: HasRestrictedContents,
-                                easing: 'ease-out', 
-                                fill: 'forwards'
-                                });
-                            node.setAttribute('twitch-hide-messages', 'hidden_message');
+
+                    let ChatMessageTarget_txt = settings['ChatMessageTarget'] || 'auto'
+                    let ChatMessageUsernameTarget_txt = settings['ChatMessageUsernameTarget'] || 'auto'
+
+                    if (node instanceof HTMLDivElement){
+                        //attempt to auto detect supported extension patternts
+                        if (ChatMessageTarget_txt == 'auto'){
+                            ChatMessageTarget_txt =
+                            [//array of possible chat message keys
+                            'data-a-target="chat-message-text"',//vanilla twitch
+                            'class="text-token"'//7tv
+                            ].find(//for element in array, find if querySelector can match known patterns
+                                element => node.querySelector('['+element+']')
+                            ) || 'auto-detect-failed' //default 
+                            //console.log("auto detection searching with: ",ChatMessageTarget_txt)
+                            //console.log(node)
+                        }
+                        if (ChatMessageUsernameTarget_txt == 'auto'){
+                            ChatMessageUsernameTarget_txt =
+                            [//array of possible chat message keys
+                            'data-a-target="chat-message-username"',//vanilla twitch
+                            'class="seventv-chat-user-username"'//7tv
+                            ].find(//for element in array, find if querySelector can match known patterns
+                                element => node.querySelector('['+element+']')
+                            ) || 'data-a-target="chat-message-username' //default 
+                        }
+
+                        //search
+                        if (node.querySelector('['+ChatMessageTarget_txt+']') !== null) {
+                            //console.log("activity detected node:", node)
+                            const messageTextSpan = node.querySelector('['+ChatMessageTarget_txt+']');
+                            const authorTextSpan = (node.querySelector('['+ChatMessageUsernameTarget_txt+']')??"").textContent ?? "";
+                            //const authorTextSpan = "" 
+                            // Check if the message starts with an exclamation point
+                            const HasRestrictedContents = CheckForFilteredContents(messageTextSpan.innerText.trim(), authorTextSpan)//returns -1 or the fade time in ms
                             
+                            if (messageTextSpan && HasRestrictedContents>=0) {
+                                // console.log('%c➖ ' + node.innerText.trim(), 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
+                                // Hide the message container
+                                console.log("HasRestrictedContents:",HasRestrictedContents)
+                                node.animate([
+                                    { opacity: 1 }, // Start state
+                                    { opacity: 0.25, display : 'none'}  // End state partialy visible then pop
+                                    ], {
+                                    duration: HasRestrictedContents,
+                                    easing: 'ease-out', 
+                                    fill: 'forwards'
+                                    });
+                                node.setAttribute('twitch-hide-messages', 'hidden_message');
+                                
+                            }
                         }
                     }
                 });
@@ -162,7 +191,7 @@ const toggleButton = document.createElement('button');
             if (!document.body.contains(toggleButton)) {
                 console.log('%c😟 Twitch Hide Messages button is lost. Restoring..', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
                 // Re-append the toggle button to the chat settings button's parent element
-                chatSettingsButton = document.querySelector('[data-a-target="chat-settings"]');
+                chatSettingsButton = document.querySelector('[data-a-target="chat-settings"],[aria-label="Turn On Shield Mode"]');
                 chatSettingsButton.parentElement.insertBefore(toggleButton, chatSettingsButton);
             }
         });

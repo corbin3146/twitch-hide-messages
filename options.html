@@ -12,11 +12,18 @@
 <body>
   <h2>Extension Settings</h2>
   <label for="DisabledOnModView">Disabled On Mod View  </label>
-  <input type="checkbox" id="DisabledOnModView" value = 'Disabled'>
+  <input type="checkbox" id="DisabledOnModView" value = 'Disabled'  title="Stops the extension from executing on https://www.twitch.tv/moderator/channel">
 
   <br><br><label for="DisabledOnRegularView">Disbled On Normal View</label>
-  <input type="checkbox" id="DisabledOnRegularView" value = 'Disabled'>
+  <input type="checkbox" id="DisabledOnRegularView" value = 'Disabled'  title="Stops the extension from executing on https://www.twitch.tv/channel">
   
+  <br><br><label for="ChatMessageTarget">Non-standard Chat Message contents Target:</label>
+  <input type="text" id="ChatMessageTarget"  title='Provide the tags for the div which contains the contents you want searched for restricted terms. eg: data-a-target="chat-message-text"'>
+
+  <br><br><label for="ChatMessageUsernameTarget">Non-standard Chat Message Username Target:</label>
+  <input type="text" id="ChatMessageUsernameTarget"  title='Provide the tags for the div which contains the username you want matched with the optional username component of a filter. eg: data-a-target="chat-message-username"'>
+
+
   <br><br><label for="filterJSON_TextArea">Filter JSON:</label><br><br>
   <textarea 
       id="filterJSON_TextArea" 
