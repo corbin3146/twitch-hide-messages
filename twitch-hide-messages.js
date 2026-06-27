@@ -92,23 +92,23 @@ const toggleButton = document.createElement('button');
             toggleButton.title = 'Hide messages with "!"';
             console.log('%c👀 Messages with "!" are no longer hidden', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
             const hidden_messages = document.querySelectorAll('[twitch-hide-messages]');
-            //console.log(hidden_messages)
-            // hidden_messages.forEach(Message => {
-            //     console.log(Message)
-            //     Message.style.setProperty('display', 'block', 'important');
-            //     Message.style.setProperty('opacity', '1', 'important');
-            //     //console.log(window.getComputedStyle(Message).display)
-            // })
+            console.log(hidden_messages)
+            hidden_messages.forEach(Message => {
+                console.log(Message)
+                Message.style.setProperty('display', 'block', 'important');
+                Message.style.setProperty('opacity', '1', 'important');
+                //console.log(window.getComputedStyle(Message).display)
+            })
             observer.disconnect();
         } else {
             toggleButton.classList.add('toggle-btn-enabled');
             toggleButton.innerHTML = '❗';
             toggleButton.title = 'Show messages with "!"';
             console.log('%c😵 Messages with "!" are now hidden', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif');
-            // const hidden_messages = document.querySelectorAll('[twitch-hide-messages]');
-            // hidden_messages.forEach(Message => {
-            //     Message.style.setProperty('display', 'none', 'important');
-            // })
+            const hidden_messages = document.querySelectorAll('[twitch-hide-messages]');
+            hidden_messages.forEach(Message => {
+                Message.style.setProperty('display', 'none', 'important');
+            })
             observer.observe(document.body, { childList: true, subtree: true });
         }
         console.log('%c😵 Twitch Hide Messages: Listening.', 'color: #9147ff; font-size: 1.1em; font-family: sans-serif;');

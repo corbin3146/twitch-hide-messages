@@ -18,11 +18,11 @@ Browser extension that hides messages using configurable filters on Twitch.
 6. Filter can be disabled for incoming messages. Click the exclamation point in the bottom right by the settings cog to toggle.
 7. Set a timeout to -1 to make a filter which prevents a message from being removed 
 8. Added compatability with other chat extension that replace the default chat messages.
+9. ❗button will toggle hiden messages for previously identified/hidden messages
 
 ## Planned Features
-1. convert the filter toggle into a show/hide feature for previously identified/hidden messages
-2. Upload this extension to the major extension stores for ease of access
-3. If there is interest, I may also add the ability to flag messages with a user defined border or background. EG: the background of messages from gato are caution yellow
+1. Upload this extension to the major extension stores for ease of access
+2. If there is interest, I may also add the ability to flag messages with a user defined border or background. EG: the background of messages from gato are caution yellow
 
 ## What are these different branches in the git repo?
 1. Main - code has been tested as thouroughly as one developer can manage on both a chromium based browser
