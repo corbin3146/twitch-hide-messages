@@ -17,6 +17,7 @@ Browser extension that hides messages using configurable filters on Twitch.
 5. For safety reasons and debugging reasons, this extension can be disabled for mod view and or regular view depending on preference. check the settings
 6. Filter can be disabled for incoming messages. Click the exclamation point in the bottom right by the settings cog to toggle.
 7. Set a timeout to -1 to make a filter which prevents a message from being removed 
+8. Added compatability with other chat extension that replace the default chat messages.
 
 ## Planned Features
 1. convert the filter toggle into a show/hide feature for previously identified/hidden messages
@@ -41,4 +42,4 @@ Browser extension that hides messages using configurable filters on Twitch.
 - Please open an issue on github for requests and bugs
 - if something is broken, please include what you did in what order, what browser you have, and any details I would need to recreate the issue.
 - Features do not strictly need to be related to spam management. If somebody wanted a popup durring a raid that has their intro listed... i can probably do that.
-- If you would like a feature added, please include concrete details such as what things should look like and how you wouldinteract with it.
+- If you would like a feature added, please include concrete details such as what things should look like and how you would interact with it.
